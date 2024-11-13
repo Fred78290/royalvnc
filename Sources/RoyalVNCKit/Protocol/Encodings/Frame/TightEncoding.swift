@@ -79,6 +79,24 @@ extension VNCProtocol.TightEncoding {
             filterID = .copy
         }
         
+        // TODO: Get TPIXEL format, check if less than 12 bytes are required
+        
+        let fbProps = framebuffer.sourceProperties
+        let tPixelProps = tPixelProperties(sourceProperties: fbProps,
+                                           framebufferWidth: .init(framebuffer.size.width))
+        
+        switch compressionMethod {
+            case .fill:
+                // TODO: Read a single color value in TPIXEL format
+                break
+            case .basic, .basicWithoutZlib:
+                // TODO
+                break
+            case .jpeg:
+                // TODO
+                break
+        }
+        
         // TODO
 //        let dataLength = try await connection.read What and only if compression is used?! Which kind of compression?
         
@@ -112,6 +130,18 @@ private extension VNCProtocol.TightEncoding {
                 "0"
             }
         }
+    }
+    
+    func tPixelProperties(sourceProperties: VNCFramebuffer.Properties,
+                          framebufferWidth: Int) -> VNCFramebuffer.Properties {
+        if !sourceProperties.usesColorMap && sourceProperties.bitsPerPixel == 32 && sourceProperties.colorDepth == 24 && sourceProperties.alphaMax == 0
+            && sourceProperties.redMax == 255 && sourceProperties.greenMax == 255 && sourceProperties.blueMax == 255 {
+            // Received as R,G,B --> memory(LE): RGB0 (0x0BGR)
+            return .init(pixelFormat: .init(bitsPerPixel: 24, depth: 24, bigEndian: false, trueColor: true, redMax: 255, greenMax: 255, blueMax: 255, redShift: 0, greenShift: 8, blueShift: 16),
+                         width: framebufferWidth)
+        }
+        
+        return sourceProperties
     }
     
     func bits(fromByte byte: UInt8) -> [Bit] {
