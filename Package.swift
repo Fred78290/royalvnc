@@ -108,6 +108,17 @@ let package = Package(
             swiftSettings: [ .swiftLanguageMode(swiftLanguageMode) ]
         ),
         
+        .testTarget(
+            name: "RoyalVNCKitTests",
+            
+            dependencies: [
+                "RoyalVNCKit"
+            ],
+            
+            cSettings: cSettings,
+            swiftSettings: [ .swiftLanguageMode(swiftLanguageMode) ]
+        ),
+        
         d3desTarget,
         libtommathTarget,
         libtomcryptTarget,
