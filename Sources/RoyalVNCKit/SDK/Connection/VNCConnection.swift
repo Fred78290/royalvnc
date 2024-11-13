@@ -94,6 +94,7 @@ public final class VNCConnection: NSObjectOrAnyObject {
 		let encs: Encodings = [
 			// Frame Encodings
 			VNCFrameEncodingType.copyRect.rawValue: VNCProtocol.CopyRectEncoding(),
+            VNCFrameEncodingType.tight.rawValue: VNCProtocol.TightEncoding(),
 			VNCFrameEncodingType.zlib.rawValue: VNCProtocol.ZlibEncoding(zStream: sharedZStream),
 			VNCFrameEncodingType.zrle.rawValue: VNCProtocol.ZRLEEncoding(zStream: sharedZStream),
 			VNCFrameEncodingType.hextile.rawValue: hextileEncoding,
