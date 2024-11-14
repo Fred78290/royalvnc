@@ -87,7 +87,8 @@ extension VNCProtocol.HextileEncoding {
 					
 					if var backgroundPixelData = backgroundPixelData {
 						framebuffer.fill(region: tileRectangle.region,
-										 withPixel: &backgroundPixelData)
+										 withPixel: &backgroundPixelData,
+                                         dataFormat: .normal)
 					}
 					
 					if hasSubrects {
@@ -117,7 +118,8 @@ extension VNCProtocol.HextileEncoding {
 							
 							if var subrectPixelData {
 								framebuffer.fill(region: subrectRegion,
-												 withPixel: &subrectPixelData)
+												 withPixel: &subrectPixelData,
+                                                 dataFormat: .normal)
 							}
 						}
 					}

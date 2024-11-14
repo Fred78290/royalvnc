@@ -102,13 +102,17 @@ extension VNCProtocol.ZRLEEncoding {
                                               logger: logger,
                                               numberOfPixels: .init(actualTileSize))
 					
-					framebuffer.update(region: tileRegion, data: &data)
+					framebuffer.update(region: tileRegion,
+                                       data: &data,
+                                       dataFormat: .normal)
 				} else if subencoding == 1 { // Solid
 					var background = try readPixels(stream: stream,
                                                     logger: logger,
                                                     numberOfPixels: 1)
 					
-					framebuffer.fill(region: tileRegion, withPixel: &background)
+					framebuffer.fill(region: tileRegion,
+                                     withPixel: &background,
+                                     dataFormat: .normal)
 				} else if subencoding >= 2 && subencoding <= 16 {
 					var data = try decodePaletteTile(stream: stream,
                                                      logger: logger,
@@ -117,13 +121,17 @@ extension VNCProtocol.ZRLEEncoding {
 													 tileWidth: tileWidth,
 													 tileHeight: tileHeight)
 					
-					framebuffer.update(region: tileRegion, data: &data)
+					framebuffer.update(region: tileRegion,
+                                       data: &data,
+                                       dataFormat: .normal)
 				} else if subencoding == 128 {
 					var data = try decodeRLETile(stream: stream,
                                                  logger: logger,
 												 tileSize: actualTileSize)
 					
-					framebuffer.update(region: tileRegion, data: &data)
+					framebuffer.update(region: tileRegion,
+                                       data: &data,
+                                       dataFormat: .normal)
 				} else if subencoding >= 130 && subencoding <= 255 {
 					let paletteSize = subencoding - 128
 					
@@ -132,7 +140,9 @@ extension VNCProtocol.ZRLEEncoding {
 														paletteSize: paletteSize,
 														tileSize: actualTileSize)
 					
-					framebuffer.update(region: tileRegion, data: &data)
+					framebuffer.update(region: tileRegion,
+                                       data: &data,
+                                       dataFormat: .normal)
 				} else {
 					throw VNCError.protocol(.zrleInvalidSubencoding(subencoding: subencoding))
 				}

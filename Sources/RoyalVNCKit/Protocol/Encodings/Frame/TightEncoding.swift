@@ -5,9 +5,11 @@ import Foundation
 #endif
 
 extension VNCProtocol {
-    struct TightEncoding: VNCFrameEncoding {
+    class TightEncoding: VNCFrameEncoding {
         let encodingType = VNCFrameEncodingType.tight.rawValue
         let maxRectangleWidth = 2048 // NOTE: To reduce implementation complexity, the width of any Tight-encoded rectangle cannot exceed 2048 pixels.
+        
+        var zlibStreams: [ZlibStream] = .init(repeating: .init(), count: 4)
     }
 }
 
@@ -24,12 +26,21 @@ extension VNCProtocol.TightEncoding {
         let compressionControlByte = try await connection.readUInt8()
         let compressionControlBits = bits(fromByte: compressionControlByte)
         
-        let shouldResetZlibStream0 = compressionControlBits[0] == .one
-        let shouldResetZlibStream1 = compressionControlBits[1] == .one
-        let shouldResetZlibStream2 = compressionControlBits[2] == .one
-        let shouldResetZlibStream3 = compressionControlBits[3] == .one
+        let zlibStreamsIndexesToReset: [Bool] = [
+            compressionControlBits[0] == .one,
+            compressionControlBits[1] == .one,
+            compressionControlBits[2] == .one,
+            compressionControlBits[3] == .one
+        ]
         
-        // TODO: Reset Zlib streams as appropriate
+        // Reset Zlib streams as appropriate
+        for (idx, shouldReset) in zlibStreamsIndexesToReset.enumerated() {
+            guard shouldReset else { continue }
+            
+            logger.logDebug("Tight resetting Zlib Stream: \(idx)")
+            
+            zlibStreams[idx] = .init()
+        }
         
         let compressionMethod: CompressionMethod
         let readFilter: Bool
@@ -59,6 +70,8 @@ extension VNCProtocol.TightEncoding {
             }
         }
         
+        logger.logDebug("Tight Compression Method: \(compressionMethod.description)")
+        
         let filterID: FilterID
         
         if readFilter {
@@ -79,26 +92,31 @@ extension VNCProtocol.TightEncoding {
             filterID = .copy
         }
         
+        logger.logDebug("Tight Filter ID: \(filterID.description)")
+        
         // TODO: Get TPIXEL format, check if less than 12 bytes are required
         
-        let fbProps = framebuffer.sourceProperties
-        let tPixelProps = tPixelProperties(sourceProperties: fbProps,
-                                           framebufferWidth: .init(framebuffer.size.width))
+        let sourceProperties = framebuffer.sourceProperties
+        let sourcePropertiesTight = sourceProperties.tightProperties(framebufferWidth: framebuffer.size.width)
         
         switch compressionMethod {
             case .fill:
                 // Read a single color value in TPIXEL format
-                let bytesPerPixel = tPixelProps.bytesPerPixel
+                let bytesPerPixel = sourcePropertiesTight.bytesPerPixel
                 
                 var tPixel = try await connection.read(length: bytesPerPixel)
                 
                 framebuffer.fill(region: rectangle.region,
-                                 withPixel: &tPixel)
-            case .basic, .basicWithoutZlib:
+                                 withPixel: &tPixel,
+                                 dataFormat: .tight)
+            case .basic:
+                // TODO
+                fatalError("Not implemented")
+            case .basicWithoutZlib:
                 // TODO
                 fatalError("Not implemented")
             case .jpeg:
-                // TODOa
+                // TODO
                 fatalError("Not implemented")
         }
         
@@ -108,17 +126,41 @@ extension VNCProtocol.TightEncoding {
 }
 
 private extension VNCProtocol.TightEncoding {
-    enum CompressionMethod {
+    enum CompressionMethod: CustomStringConvertible {
         case basic
         case basicWithoutZlib
         case fill
         case jpeg
+        
+        var description: String {
+            switch self {
+            case .basic:
+                "Basic"
+            case .basicWithoutZlib:
+                "Basic without Zlib"
+            case .fill:
+                "Fill"
+            case .jpeg:
+                "JPEG"
+            }
+        }
     }
     
-    enum FilterID {
+    enum FilterID: CustomStringConvertible {
         case copy // NOTE: aka no filter
         case palette
         case gradient
+        
+        var description: String {
+            switch self {
+            case .copy:
+                "Copy"
+            case .palette:
+                "Palette"
+            case .gradient:
+                "Gradient"
+            }
+        }
     }
     
     enum Bit: UInt8, CustomStringConvertible {
@@ -133,18 +175,6 @@ private extension VNCProtocol.TightEncoding {
                 "0"
             }
         }
-    }
-    
-    func tPixelProperties(sourceProperties: VNCFramebuffer.Properties,
-                          framebufferWidth: Int) -> VNCFramebuffer.Properties {
-        if !sourceProperties.usesColorMap && sourceProperties.bitsPerPixel == 32 && sourceProperties.colorDepth == 24 && sourceProperties.alphaMax == 0
-            && sourceProperties.redMax == 255 && sourceProperties.greenMax == 255 && sourceProperties.blueMax == 255 {
-            // Received as R,G,B --> memory(LE): RGB0 (0x0BGR)
-            return .init(pixelFormat: .init(bitsPerPixel: 24, depth: 24, bigEndian: false, trueColor: true, redMax: 255, greenMax: 255, blueMax: 255, redShift: 0, greenShift: 8, blueShift: 16),
-                         width: framebufferWidth)
-        }
-        
-        return sourceProperties
     }
     
     func bits(fromByte byte: UInt8) -> [Bit] {

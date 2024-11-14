@@ -257,7 +257,8 @@ public extension VNCFramebuffer {
 // MARK: - Internal API
 extension VNCFramebuffer {
 	func update(region: VNCRegion,
-				data: inout Data) {
+				data: inout Data,
+                dataFormat: PixelDataFormat) {
 		logger.logDebug("Framebuffer Update Region \(region)")
 		
 		guard isValidRegion(region) else {
@@ -267,8 +268,11 @@ extension VNCFramebuffer {
 		}
 		
 		lockSurfaceReadWrite()
-		updatePixelBufferWithData(&data, forRegion: region)
-		unlockSurfaceReadWrite()
+        defer { unlockSurfaceReadWrite() }
+        
+		updatePixelBufferWithData(&data,
+                                  dataFormat: dataFormat,
+                                  forRegion: region)
 	}
 	
 	func copy(region sourceRegion: VNCRegion,
@@ -288,12 +292,15 @@ extension VNCFramebuffer {
 		}
 		
 		lockSurfaceReadWrite()
-		copyPixelBufferRegion(sourceRegion, to: destinationRegion)
-		unlockSurfaceReadWrite()
+        defer { unlockSurfaceReadWrite() }
+        
+		copyPixelBufferRegion(sourceRegion,
+                              to: destinationRegion)
 	}
 	
 	func fill(region: VNCRegion,
-			  withPixel pixelData: inout Data) {
+			  withPixel pixelData: inout Data,
+              dataFormat: PixelDataFormat) {
 		logger.logDebug("Framebuffer Fill Region \(region)")
 		
 		guard isValidRegion(region) else {
@@ -303,8 +310,11 @@ extension VNCFramebuffer {
 		}
 		
 		lockSurfaceReadWrite()
-		fillPixelBufferWithPixel(&pixelData, forRegion: region)
-		unlockSurfaceReadWrite()
+        defer { unlockSurfaceReadWrite() }
+        
+		fillPixelBufferWithPixel(&pixelData,
+                                 dataFormat: dataFormat,
+                                 forRegion: region)
 	}
 	
 	func updateColorMap(_ entries: VNCProtocol.SetColourMapEntries) {
@@ -431,7 +441,9 @@ extension VNCFramebuffer {
 
 // MARK: - Update Framebuffer
 private extension VNCFramebuffer {
+    // TODO: Ensure we handle Tight Pixel Format correctly
 	func updatePixelBufferWithData(_ data: inout Data,
+                                   dataFormat: PixelDataFormat,
 								   forRegion region: VNCRegion) {
 		guard width > 0,
 			  height > 0,
@@ -522,7 +534,9 @@ private extension VNCFramebuffer {
 		}
 	}
 	
+    // TODO: Ensure we handle Tight Pixel Format correctly
 	func fillPixelBufferWithPixel(_ pixelData: inout Data,
+                                  dataFormat: PixelDataFormat,
 								  forRegion region: VNCRegion) {
 		guard width > 0,
 			  height > 0,
@@ -532,15 +546,24 @@ private extension VNCFramebuffer {
 			return
 		}
 		
-//		let sourceBytesPerPixel = sourceProperties.bytesPerPixel
 		let destinationBytesPerPixel = destinationProperties.bytesPerPixel
 		
-        // TODO: This check was disabled to allow Tight encoding to use 3 bytes long TPIXEL format
-//#if DEBUG
-//        guard pixelData.count == sourceBytesPerPixel else {
-//            return
-//        }
-//#endif
+#if DEBUG
+        let sourceProperties: Properties
+        
+        switch dataFormat {
+            case .normal:
+                sourceProperties = self.sourceProperties
+            case .tight:
+                sourceProperties = self.sourceProperties.tightProperties(framebufferWidth: size.width)
+        }
+        
+        let sourceBytesPerPixel = sourceProperties.bytesPerPixel
+        
+        guard pixelData.count == sourceBytesPerPixel else {
+            return
+        }
+#endif
         
         let fixedAlpha = UInt8(destinationProperties.alphaMax)
 		
@@ -619,6 +642,7 @@ private extension VNCFramebuffer {
 		var data = bufferData(ofRegion: sourceRegion)
 		
 		updatePixelBufferWithData(&data,
+                                  dataFormat: .normal,
 								  forRegion: destinationRegion)
     }
 	

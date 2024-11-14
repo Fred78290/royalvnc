@@ -41,7 +41,8 @@ extension VNCProtocol.RawEncoding {
 		let region = rectangle.region
 		
 		framebuffer.update(region: region,
-						   data: &data)
+						   data: &data,
+                           dataFormat: .normal)
 		
 		framebuffer.didUpdate(region: region)
 	}

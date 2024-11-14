@@ -25,7 +25,8 @@ extension VNCProtocol.RREEncoding {
 		logger.logDebug("Received RRE Encoding number of sub rectangles: \(numberOfSubRectangles)")
 		
 		framebuffer.fill(region: rectangle.region,
-						 withPixel: &backgroundPixelValue)
+						 withPixel: &backgroundPixelValue,
+                         dataFormat: .normal)
 		
 		for idx in 0..<numberOfSubRectangles {
 			logger.logDebug("Receiving RRE Encoding Sub Rectangles \(idx + 1)/\(numberOfSubRectangles)")
@@ -43,7 +44,8 @@ extension VNCProtocol.RREEncoding {
 			logger.logDebug("Received RRE Encoding Sub Rectangle \(idx + 1)/\(numberOfSubRectangles): \(subRectangle)")
 			
 			framebuffer.fill(region: subRegion,
-							 withPixel: &foregroundPixelValue)
+							 withPixel: &foregroundPixelValue,
+                             dataFormat: .normal)
 		}
 		
 		let region = rectangle.region

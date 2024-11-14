@@ -106,5 +106,36 @@ extension VNCFramebuffer {
 						 blueShift: blueShift,
 						 alphaShift: alphaShift)
 		}
+        
+        func tightProperties(framebufferWidth: UInt16) -> Properties {
+            let newProps: Properties
+            
+            if !usesColorMap,
+               bitsPerPixel == 32,
+               colorDepth == 24,
+               alphaMax == 0,
+               redMax == 255,
+               greenMax == 255,
+               blueMax == 255 {
+                // Received as R,G,B --> memory(LE): RGB0 (0x0BGR)
+                let pixelFormat = VNCProtocol.PixelFormat(bitsPerPixel: 24,
+                                                          depth: 24,
+                                                          bigEndian: false,
+                                                          trueColor: true,
+                                                          redMax: 255,
+                                                          greenMax: 255,
+                                                          blueMax: 255,
+                                                          redShift: 0,
+                                                          greenShift: 8,
+                                                          blueShift: 16)
+                
+                newProps = Properties(pixelFormat: pixelFormat,
+                                      width: .init(framebufferWidth))
+            } else {
+                newProps = self
+            }
+            
+            return newProps
+        }
 	}
 }

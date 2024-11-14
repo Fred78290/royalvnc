@@ -40,7 +40,8 @@ class CopyRectEncodingTest: XCTestCase {
             var data = initialData.data
             
             setup.framebuffer.fill(region: region,
-                                   withPixel: &data)
+                                   withPixel: &data,
+                                   dataFormat: .normal)
         }
         
         let datas: [FrameEncodingRectangleTestData] = [
