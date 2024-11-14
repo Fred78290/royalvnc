@@ -101,7 +101,7 @@ extension VNCProtocol.TightEncoding {
         
         switch compressionMethod {
             case .fill:
-                // Read a single color value in TPIXEL format
+                // Read a single color value in TPIXEL format and fill the entire region with it
                 let bytesPerPixel = sourcePropertiesTight.bytesPerPixel
                 
                 var tPixel = try await connection.read(length: bytesPerPixel)

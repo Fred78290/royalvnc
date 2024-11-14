@@ -26,6 +26,21 @@ public enum VNCPseudoEncodingType: VNCEncodingType {
 	case compressionLevel9 = -248
 	/// Highest compression level
 	case compressionLevel10 = -247
+    
+    // Level 1 means lowest JPEG quality, Level 10 means highest JPEG quality
+    
+    /// Lowest JPEG quality
+    case jpegCompressionLevel1 = -32
+    case jpegCompressionLevel2 = -31
+    case jpegCompressionLevel3 = -30
+    case jpegCompressionLevel4 = -29
+    case jpegCompressionLevel5 = -28
+    case jpegCompressionLevel6 = -27
+    case jpegCompressionLevel7 = -26
+    case jpegCompressionLevel8 = -25
+    case jpegCompressionLevel9 = -24
+    /// Highest JPEG quality
+    case jpegCompressionLevel10 = -23
 	
 	case extendedClipboard = 0xc0a1e5ce
 }
@@ -45,6 +60,7 @@ extension VNCPseudoEncodingType: CustomStringConvertible {
 				"Desktop Size"
 			case .extendedDesktopSize:
 				"Extended Desktop Size"
+                
 			case .compressionLevel1:
 				"Compression Level 1"
 			case .compressionLevel2:
@@ -65,6 +81,28 @@ extension VNCPseudoEncodingType: CustomStringConvertible {
 				"Compression Level 9"
 			case .compressionLevel10:
 				"Compression Level 10"
+                
+            case .jpegCompressionLevel1:
+                "JPEG Compression Level 1"
+            case .jpegCompressionLevel2:
+                "JPEG Compression Level 2"
+            case .jpegCompressionLevel3:
+                "JPEG Compression Level 3"
+            case .jpegCompressionLevel4:
+                "JPEG Compression Level 4"
+            case .jpegCompressionLevel5:
+                "JPEG Compression Level 5"
+            case .jpegCompressionLevel6:
+                "JPEG Compression Level 6"
+            case .jpegCompressionLevel7:
+                "JPEG Compression Level 7"
+            case .jpegCompressionLevel8:
+                "JPEG Compression Level 8"
+            case .jpegCompressionLevel9:
+                "JPEG Compression Level 9"
+            case .jpegCompressionLevel10:
+                "JPEG Compression Level 10"
+                
 			case .extendedClipboard:
 				"Extended Clipboard"
 		}

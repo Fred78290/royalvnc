@@ -90,6 +90,9 @@ public final class VNCConnection: NSObjectOrAnyObject {
 		
 		let compressionLevelEncodingType = VNCPseudoEncodingType.compressionLevel6.rawValue
 		let compressionLevelEncoding = VNCProtocol.CompressionLevelEncoding(encodingType: compressionLevelEncodingType)
+        
+        let jpegCompressionLevelEncodingType = VNCPseudoEncodingType.jpegCompressionLevel6.rawValue
+        let jpegCompressionLevelEncoding = VNCProtocol.JPEGCompressionLevelEncoding(encodingType: jpegCompressionLevelEncodingType)
 		
 		let encs: Encodings = [
 			// Frame Encodings
@@ -109,7 +112,8 @@ public final class VNCConnection: NSObjectOrAnyObject {
 			VNCPseudoEncodingType.desktopSize.rawValue: VNCProtocol.DesktopSizeEncoding(),
 			VNCPseudoEncodingType.desktopName.rawValue: VNCProtocol.DesktopNameEncoding(),
 			VNCPseudoEncodingType.cursor.rawValue: VNCProtocol.CursorEncoding(),
-			compressionLevelEncodingType: compressionLevelEncoding
+			compressionLevelEncodingType: compressionLevelEncoding,
+            jpegCompressionLevelEncodingType: jpegCompressionLevelEncoding
 		]
 		
 		// Sanity Check
@@ -156,7 +160,8 @@ public final class VNCConnection: NSObjectOrAnyObject {
 			VNCPseudoEncodingType.cursor.rawValue,
 			// TODO: Implement
 //			VNCPseudoEncodingType.extendedClipboard.rawValue,
-			VNCPseudoEncodingType.compressionLevel6.rawValue
+			VNCPseudoEncodingType.compressionLevel6.rawValue,
+            VNCPseudoEncodingType.jpegCompressionLevel6.rawValue
 		])
 		
 		let uniqueEncs = encs.uniqued()
