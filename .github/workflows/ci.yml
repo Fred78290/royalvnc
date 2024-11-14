@@ -141,6 +141,10 @@ jobs:
         swift package clean --configuration release
         swift build --configuration release
 
+    - name: test RoyalVNCKit
+      run: |
+        swift test
+
     # .NET bindings and NuGet package artifacts
 
     - name: build .NET bindings
