@@ -16,6 +16,12 @@ class ReadableMockConnection: NetworkConnectionReading {
     
     func read(minimumLength: Int,
               maximumLength: Int) async throws -> Data {
-        data[cursor..<cursor + maximumLength]
+        defer {
+            cursor += maximumLength
+        }
+        
+        let subData = data[cursor..<cursor + maximumLength]
+        
+        return subData
     }
 }
