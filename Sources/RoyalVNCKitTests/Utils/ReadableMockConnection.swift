@@ -20,7 +20,7 @@ class ReadableMockConnection: NetworkConnectionReading {
             cursor += maximumLength
         }
         
-        let subData = data[cursor..<cursor + maximumLength]
+        let subData = Data(data[cursor..<cursor + maximumLength])
         
         return subData
     }

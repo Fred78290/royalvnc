@@ -87,20 +87,23 @@ extension VNCProtocol.TightEncoding {
         
         switch compressionMethod {
             case .fill:
-                // TODO: Read a single color value in TPIXEL format
-                break
+                // Read a single color value in TPIXEL format
+                let bytesPerPixel = tPixelProps.bytesPerPixel
+                
+                var tPixel = try await connection.read(length: bytesPerPixel)
+                
+                framebuffer.fill(region: rectangle.region,
+                                 withPixel: &tPixel)
             case .basic, .basicWithoutZlib:
                 // TODO
-                break
+                fatalError("Not implemented")
             case .jpeg:
-                // TODO
-                break
+                // TODOa
+                fatalError("Not implemented")
         }
         
         // TODO
 //        let dataLength = try await connection.read What and only if compression is used?! Which kind of compression?
-        
-        fatalError("Not implemented")
     }
 }
 

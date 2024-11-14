@@ -532,14 +532,15 @@ private extension VNCFramebuffer {
 			return
 		}
 		
-		let sourceBytesPerPixel = sourceProperties.bytesPerPixel
+//		let sourceBytesPerPixel = sourceProperties.bytesPerPixel
 		let destinationBytesPerPixel = destinationProperties.bytesPerPixel
 		
-#if DEBUG
-        guard pixelData.count == sourceBytesPerPixel else {
-            return
-        }
-#endif
+        // TODO: This check was disabled to allow Tight encoding to use 3 bytes long TPIXEL format
+//#if DEBUG
+//        guard pixelData.count == sourceBytesPerPixel else {
+//            return
+//        }
+//#endif
         
         let fixedAlpha = UInt8(destinationProperties.alphaMax)
 		

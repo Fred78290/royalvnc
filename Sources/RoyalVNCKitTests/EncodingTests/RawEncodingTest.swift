@@ -28,7 +28,6 @@ class RawEncodingTest: XCTestCase {
                 0x00, 0xff, 0x00, 0,
                 0xff, 0x00, 0x00, 0
             ]),
-            
             .init(x: 2, y: 0, width: 2, height: 2,
                   encodingType: setup.encodingType, data: [
                 0x00, 0x00, 0xff, 0,
@@ -36,7 +35,6 @@ class RawEncodingTest: XCTestCase {
                 0x00, 0x00, 0xff, 0,
                 0x00, 0x00, 0xff, 0
             ]),
-            
             .init(x: 0, y: 2, width: 4, height: 1,
                   encodingType: setup.encodingType, data: [
                 0xee, 0x00, 0xff, 0,
@@ -44,7 +42,6 @@ class RawEncodingTest: XCTestCase {
                 0xaa, 0xee, 0xff, 0,
                 0xab, 0xee, 0xff, 0
             ]),
-            
             .init(x: 0, y: 3, width: 4, height: 1,
                   encodingType: setup.encodingType, data: [
                 0xee, 0x00, 0xff, 0,
