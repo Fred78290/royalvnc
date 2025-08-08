@@ -83,6 +83,11 @@ let package = Package(
             targets: [ "RoyalVNCKit" ]
         ),
 
+        .library(
+            name: "RoyalVNCKitStatic",
+            targets: [ "RoyalVNCKit" ]
+        ),
+
         .executable(name: "RoyalVNCKitDemo",
                     targets: [ "RoyalVNCKitDemo" ])
     ],
