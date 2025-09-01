@@ -47,6 +47,7 @@ zTarget = Target.target(name: "Z", path: "Sources/zlib-1.3.1", cSettings: [
 cSettings = .init()
 
 libtomCSettings = [
+    .define("TOMMATH_PREFIX", to: "RoyalVNC"),
     .unsafeFlags([
         disableShorten64To32Warning
     ])
@@ -109,9 +110,12 @@ let package = Package(
                 .byName(name: zTarget.name)
             ],
 
-            cSettings: cSettings,
+            cSettings: [
+				.define("TOMMATH_PREFIX", to: "RoyalVNC"),
+			],
             
             swiftSettings: [
+                .define("TOMMATH_PREFIX"),
                 .swiftLanguageMode(swiftLanguageMode),
                 
                 .unsafeFlags([

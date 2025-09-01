@@ -11,7 +11,7 @@ final class BigNum {
 	private let backingDataPointer: UnsafeMutablePointer<UInt8>?
 
 	init() {
-		self.num = BN_new()
+		self.num = RoyalVNC_BN_new()
 		self.backingDataPointer = nil
 	}
 
@@ -21,7 +21,7 @@ final class BigNum {
 		let backingDataPtr = UnsafeMutablePointer<UInt8>.allocate(capacity: dataLength)
 		data.copyBytes(to: backingDataPtr, count: dataLength)
 
-		guard let num = BN_bin2bn(backingDataPtr, .init(dataLength), nil) else {
+		guard let num: UnsafeMutablePointer<BIGNUM> = RoyalVNC_BN_bin2bn(backingDataPtr, .init(dataLength), nil) else {
 			backingDataPtr.deallocate()
 
 			return nil
@@ -34,32 +34,32 @@ final class BigNum {
 	deinit {
 		backingDataPointer?.deallocate()
 
-		BN_free(num)
+		RoyalVNC_BN_free(num)
 	}
 }
 
 extension BigNum {
 	var isZero: Bool {
-		let isItNum = BN_is_zero(num)
+		let isItNum = RoyalVNC_BN_is_zero(num)
 		let isIt = isItNum != 0
 
 		return isIt
 	}
 
 	var bytesCount: Int32 {
-		let count = BN_num_bytes(num)
+		let count = RoyalVNC_BN_num_bytes(num)
 
 		return count
 	}
 
 	var bitsCount: Int32 {
-		let count = BN_num_bits(num)
+		let count = RoyalVNC_BN_num_bits(num)
 
 		return count
 	}
 
 	func rand(range: BigNum) -> Bool {
-		let successNum = BN_rand_range(num, range.num)
+		let successNum = RoyalVNC_BN_rand_range(num, range.num)
 		let success = successNum != 0
 
 		return success
@@ -69,10 +69,7 @@ extension BigNum {
 					   g: BigNum,
 					   x: BigNum,
 					   p: BigNum) -> Bool {
-		let successNum = BN_mod_exp(y.num,
-									g.num,
-									x.num,
-									p.num)
+		let successNum = RoyalVNC_BN_mod_exp(y.num, g.num, x.num, p.num)
 
 		let success = successNum != 0
 
@@ -89,7 +86,7 @@ extension BigNum {
 				return 0
 			}
 
-			let convertedLength = BN_bn2bin(num, dataPtr)
+			let convertedLength = RoyalVNC_BN_bn2bin(num, dataPtr)
 
 			return .init(convertedLength)
 		}
