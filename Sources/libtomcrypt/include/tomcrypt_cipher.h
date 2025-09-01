@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_CIPHER_H_
 #define TOMCRYPT_CIPHER_H_
 
+#include "tomcrypt_prefix.h"
+
 /* ---- SYMMETRIC KEY STUFF -----
  *
  * We put each of the ciphers scheduled keys in their own structs then we put all of

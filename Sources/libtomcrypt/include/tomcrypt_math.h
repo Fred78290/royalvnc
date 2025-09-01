@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_MATH_H_
 #define TOMCRYPT_MATH_H_
 
+#include "tomcrypt_prefix.h"
+
 /** math functions **/
 
 #define LTC_MP_LT   -1

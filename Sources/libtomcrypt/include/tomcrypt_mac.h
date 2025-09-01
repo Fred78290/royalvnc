@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_MAC_H_
 #define TOMCRYPT_MAC_H_
 
+#include "tomcrypt_prefix.h"
+
 #ifdef LTC_HMAC
 typedef struct Hmac_state {
      hash_state     md;

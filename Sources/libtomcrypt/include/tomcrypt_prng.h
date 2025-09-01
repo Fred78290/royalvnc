@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_PRNG_H_
 #define TOMCRYPT_PRNG_H_
 
+#include "tomcrypt_prefix.h"
+
 /* ---- PRNG Stuff ---- */
 #ifdef LTC_YARROW
 struct yarrow_prng {

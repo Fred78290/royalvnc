@@ -77,6 +77,7 @@ enum {
    CRYPT_UNKNOWN_PEM,       /* The PEM header was not recognized */
 };
 
+#include "tomcrypt_prefix.h"
 #include "tomcrypt_cfg.h"
 #include "tomcrypt_macros.h"
 #include "tomcrypt_cipher.h"

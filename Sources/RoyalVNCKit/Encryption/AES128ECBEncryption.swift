@@ -14,10 +14,10 @@ struct AES128ECBEncryption {
             return nil
         }
 
-        var aesDesc = aes_desc
+        var aesDesc = RoyalVNC_aes_desc
 
         // Register the cipher if necessary
-        guard register_cipher(&aesDesc) == CRYPT_OK else {
+        guard RoyalVNC_register_cipher(&aesDesc) == CRYPT_OK else {
             return nil
         }
 
@@ -25,7 +25,7 @@ struct AES128ECBEncryption {
 
         defer {
             // Clean up and free the ECB key structure
-            ecb_done(&ecbKey)
+			RoyalVNC_ecb_done(&ecbKey)
         }
 
         let blockSizeAES128 = 16
@@ -36,10 +36,10 @@ struct AES128ECBEncryption {
                 return -1
             }
 
-            let aesCipher = find_cipher("aes")
+            let aesCipher = RoyalVNC_find_cipher("aes")
 
             // Initialize the ECB structure with the key
-            let result = ecb_start(
+            let result = RoyalVNC_ecb_start(
                 aesCipher,
                 keyPtrAddr,
                 .init(key.count),
@@ -85,7 +85,7 @@ struct AES128ECBEncryption {
                     }
 
                     // Encrypt the padded block
-                    let result = ecb_encrypt(
+                    let result = RoyalVNC_ecb_encrypt(
                         paddedBlockPtrAddr,
                         cipherBufferPtrAddr.advanced(by: blockStart),
                         .init(blockSizeAES128),

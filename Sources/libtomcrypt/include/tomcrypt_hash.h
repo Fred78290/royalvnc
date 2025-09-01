@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_HASH_H_
 #define TOMCRYPT_HASH_H_
 
+#include "tomcrypt_prefix.h"
+
 /* ---- HASH FUNCTIONS ---- */
 #if defined(LTC_SHA3) || defined(LTC_KECCAK)
 struct sha3_state {

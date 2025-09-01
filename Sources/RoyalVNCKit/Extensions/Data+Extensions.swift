@@ -61,7 +61,7 @@ extension Data {
         var hashState = hash_state()
 
         // Initialize the MD5 context
-        let initResult = md5_init(&hashState)
+        let initResult = RoyalVNC_md5_init(&hashState)
 
         guard initResult == CRYPT_OK else {
             fatalError("MD5 init failed: \(initResult)")
@@ -73,9 +73,7 @@ extension Data {
                 return CRYPT_ERROR
             }
 
-            let ret = md5_process(&hashState,
-                                  ptrAddr,
-                                  .init(self.count))
+            let ret = RoyalVNC_md5_process(&hashState, ptrAddr, .init(self.count))
 
             return .init(ret)
         }
@@ -92,8 +90,7 @@ extension Data {
                 return CRYPT_ERROR
             }
 
-            let ret = md5_done(&hashState,
-                               ptrAddr)
+            let ret = RoyalVNC_md5_done(&hashState, ptrAddr)
 
             return .init(ret)
         }

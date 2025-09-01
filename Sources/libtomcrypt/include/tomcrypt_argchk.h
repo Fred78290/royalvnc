@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_ARGCHK_H_
 #define TOMCRYPT_ARGCHK_H_
 
+#include "tomcrypt_prefix.h"
+
 /* Defines the LTC_ARGCHK macro used within the library */
 /* ARGTYPE is defined in tomcrypt_cfg.h */
 

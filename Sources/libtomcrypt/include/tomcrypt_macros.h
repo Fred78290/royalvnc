@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_MACROS_H_
 #define TOMCRYPT_MACROS_H_
 
+#include "tomcrypt_prefix.h"
+
 #define LTC_TMPVAR__(n, l) n ## l
 #define LTC_TMPVAR_(n, l) LTC_TMPVAR__(n, l)
 #define LTC_TMPVAR(n) LTC_TMPVAR_(LTC_ ## n ## _, __LINE__)

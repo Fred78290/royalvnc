@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_MISC_H_
 #define TOMCRYPT_MISC_H_
 
+#include "tomcrypt_prefix.h"
+
 /* ---- LTC_BASE64 Routines ---- */
 #ifdef LTC_BASE64
 int base64_encode(const unsigned char *in,  unsigned long inlen,

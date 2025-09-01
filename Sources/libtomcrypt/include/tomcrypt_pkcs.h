@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_PKCS_H_
 #define TOMCRYPT_PKCS_H_
 
+#include "tomcrypt_prefix.h"
+
 /* PKCS Header Info */
 
 /* ===> PKCS #1 -- RSA Cryptography <=== */

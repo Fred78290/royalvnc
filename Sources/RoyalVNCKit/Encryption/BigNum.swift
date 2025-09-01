@@ -5,6 +5,7 @@ import Foundation
 #endif
 
 @_implementationOnly import libtommath
+@_implementationOnly import libtomcrypt
 
 final class BigNum {
 	private let num: UnsafeMutablePointer<BIGNUM>

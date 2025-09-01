@@ -4,6 +4,8 @@
 #ifndef TOMCRYPT_PK_H_
 #define TOMCRYPT_PK_H_
 
+#include "tomcrypt_prefix.h"
+
 typedef struct password_ctx {
    /**
       Callback function that is called when a password is required.
