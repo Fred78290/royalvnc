@@ -30,6 +30,12 @@ extension VNCProtocol.FramebufferUpdate {
 #endif
 
 		var rectangles = [VNCProtocol.Rectangle]()
+        
+        framebuffer.beginBatchUpdates()
+        
+        defer {
+            framebuffer.endBatchUpdates()
+        }
 
 		for idx in 0..<numberOfRectangles {
 			logger.logDebug("Reading rectangle header \(idx + 1)/\(numberOfRectangles)")

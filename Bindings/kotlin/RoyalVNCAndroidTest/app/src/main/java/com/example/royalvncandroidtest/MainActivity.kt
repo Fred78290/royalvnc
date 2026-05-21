@@ -26,7 +26,8 @@ class MainActivity :
 
     private var _port: Short = 5900
 
-    private var _image: MutableState<ImageBitmap?> = mutableStateOf(null)
+    private var _framebufferImage: MutableState<ImageBitmap?> = mutableStateOf(null)
+    private var _cursorImage: MutableState<ImageBitmap?> = mutableStateOf(null)
 
     private val _logTag = "RVNC"
 
@@ -96,10 +97,17 @@ class MainActivity :
                             Text(if (_isConnected.value) "Disconnect" else "Connect")
                         }
 
-                        _image.value?.let {
+                        _framebufferImage.value?.let {
                             Image(
                                 bitmap = it,
                                 contentDescription = "Remote Screen"
+                            )
+                        }
+
+                        _cursorImage.value?.let {
+                            Image(
+                                bitmap = it,
+                                contentDescription = "Mouse Cursor"
                             )
                         }
                     }
@@ -123,6 +131,18 @@ class MainActivity :
             return
         }
 
+        val frameEncodings: Array<VncFrameEncodingType>? = null
+
+        // Optional(!)
+//        frameEncodings = arrayOf(
+//            VncFrameEncodingType.TIGHT,
+//            VncFrameEncodingType.ZLIB,
+//            VncFrameEncodingType.ZRLE,
+//            VncFrameEncodingType.HEXTILE,
+//            VncFrameEncodingType.CORRE,
+//            VncFrameEncodingType.RRE
+//        )
+
         val settings = VncSettings(
             true,
             hostname,
@@ -132,7 +152,8 @@ class MainActivity :
             false,
             VncInputMode.FORWARDKEYBOARDSHORTCUTSEVENIFINUSELOCALLY,
             false,
-            VncColorDepth.BIT24
+            VncColorDepth.BIT24,
+            frameEncodings
         )
 
         val connection = VncConnection(
@@ -206,7 +227,8 @@ class MainActivity :
             }
 
             if (connectionStatus == VncConnectionStatus.DISCONNECTED) {
-                _image.value = null
+                _cursorImage.value = null
+                _framebufferImage.value = null
 
                 _connection?.close()
                 _connection = null
@@ -267,11 +289,11 @@ class MainActivity :
             val bitmap = it.getBitmap(framebuffer)
 
             runOnUiThread {
-                _image.value = bitmap.asImageBitmap()
+                _framebufferImage.value = bitmap.asImageBitmap()
             }
         } ?: run {
             runOnUiThread {
-                _image.value = null
+                _framebufferImage.value = null
             }
         }
     }
@@ -281,5 +303,17 @@ class MainActivity :
         cursor: VncCursor
     ) {
         Log.d(_logTag, "didUpdateCursor (width: ${cursor.width}; height: ${cursor.height})")
+
+        if (cursor.empty) {
+            runOnUiThread {
+                _cursorImage.value = null
+            }
+        } else {
+            val bitmap = cursor.getBitmap()
+
+            runOnUiThread {
+                _cursorImage.value = bitmap.asImageBitmap()
+            }
+        }
     }
 }

@@ -84,11 +84,26 @@ public final class VNCFramebuffer: NSObjectOrAnyObject {
 	let destinationProperties: Properties
 
 	let needsColorConversion: Bool
-
-	private(set) var colorMap: ColorMap?
-
+    
+#if canImport(IOSurface) && canImport(CoreVideo)
+    var ioSurface: IOSurface? {
+        guard let surfaceAllocator = allocator as? VNCFramebufferIOSurfaceAllocator else {
+            return nil
+        }
+        
+        let surface = surfaceAllocator.surface
+        
+        return surface
+    }
+#endif
+    
+    private(set) var colorMap: ColorMap?
+    
+    // MARK: - Private Properties
+    private var isBatchingUpdates = false
+    private var regionsUpdatedInBatch = [VNCRegion]()
+    
 #if canImport(CoreGraphics)
-	// MARK: - Private Properties
 	private static let rgbColorSpace = CGColorSpaceCreateDeviceRGB()
 #endif
 
@@ -389,11 +404,13 @@ extension VNCFramebuffer {
 					 bytesPerPixel: destinationBytesPerPixel)
 	}
 
-	func didUpdate() {
-		notifyDelegateFramebufferDidUpdate()
-	}
-
 	func didUpdate(region: VNCRegion) {
+        guard !isBatchingUpdates else {
+            regionsUpdatedInBatch.append(region)
+            
+            return
+        }
+        
 		notifyDelegateFramebufferDidUpdate(region: region)
 	}
 
@@ -438,6 +455,26 @@ extension VNCFramebuffer {
 		notifyDelegateSizeDidChange(newSize,
 									screens: newScreens)
 	}
+    
+    func beginBatchUpdates() {
+        isBatchingUpdates = true
+        regionsUpdatedInBatch = .init()
+    }
+
+    func endBatchUpdates() {
+        guard isBatchingUpdates else {
+            return
+        }
+        
+        isBatchingUpdates = false
+        
+        // NOTE: Only for debugging!
+//        logger.logInfo("regionsUpdatedInBatch: \(regionsUpdatedInBatch.count)")
+        
+        for region in regionsUpdatedInBatch {
+            notifyDelegateFramebufferDidUpdate(region: region)
+        }
+    }
 }
 
 // MARK: - Update Framebuffer
@@ -751,10 +788,12 @@ extension VNCFramebuffer {
     func copyPixelDataToRGBA32(destinationPixelBuffer: UnsafeMutableRawPointer) {
         lockSurfaceReadOnly()
         defer { unlockSurfaceReadOnly() }
-
-        Self.copyBGRAtoRGBA(srcBuffer: surfaceAddress,
-                            dstBuffer: destinationPixelBuffer,
-                            byteCount: surfaceByteCount)
+        
+        GraphicsUtils.copyBGRAtoRGBA(
+            srcBuffer: surfaceAddress,
+            dstBuffer: destinationPixelBuffer,
+            byteCount: surfaceByteCount
+        )
     }
 
     func destroyRGBA32PixelData(_ buffer: UnsafeMutableRawPointer) {
@@ -766,36 +805,13 @@ extension VNCFramebuffer {
         let dstBuffer = UnsafeMutableRawPointer.allocate(byteCount: byteCount,
                                                          alignment: MemoryLayout<UInt8>.alignment)
 
-        Self.copyBGRAtoRGBA(srcBuffer: srcBuffer,
-                            dstBuffer: dstBuffer,
-                            byteCount: byteCount)
+        GraphicsUtils.copyBGRAtoRGBA(
+            srcBuffer: srcBuffer,
+            dstBuffer: dstBuffer,
+            byteCount: byteCount
+        )
 
         return dstBuffer
-    }
-
-    private static func copyBGRAtoRGBA(srcBuffer: UnsafeRawPointer,
-                                       dstBuffer: UnsafeMutableRawPointer,
-                                       byteCount: Int) {
-
-        let src = srcBuffer.assumingMemoryBound(to: UInt8.self)
-        let dst = dstBuffer.assumingMemoryBound(to: UInt8.self)
-
-        let pixelCount = byteCount / 4
-        var i = 0
-
-        while i < pixelCount {
-            let b = src[i * 4]
-            let g = src[i * 4 + 1]
-            let r = src[i * 4 + 2]
-            let a = src[i * 4 + 3]
-
-            dst[i * 4] = r
-            dst[i * 4 + 1] = g
-            dst[i * 4 + 2] = b
-            dst[i * 4 + 3] = a
-
-            i += 1
-        }
     }
 }
 

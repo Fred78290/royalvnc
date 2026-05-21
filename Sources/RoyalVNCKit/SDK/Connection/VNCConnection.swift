@@ -49,6 +49,7 @@ public final class VNCConnection: NSObjectOrAnyObject {
 									  attributes: .concurrent)
 
 	private let sharedZStream: ZlibStream
+    private let sharedZRLEZStream: ZlibStream
 
 	// MARK: - Internal Properties
     let taskPriority = TaskPriority.high
@@ -93,11 +94,15 @@ public final class VNCConnection: NSObjectOrAnyObject {
 		let compressionLevelEncodingType = VNCPseudoEncodingType.compressionLevel6.rawValue
 		let compressionLevelEncoding = VNCProtocol.CompressionLevelEncoding(encodingType: compressionLevelEncodingType)
 
+		let jpegQualityLevelEncodingType = VNCPseudoEncodingType.jpegQualityLevel6.rawValue
+		let jpegQualityLevelEncoding = VNCProtocol.JPEGQualityLevelEncoding(encodingType: jpegQualityLevelEncodingType)
+
 		let encs: Encodings = [
 			// Frame Encodings
 			VNCFrameEncodingType.copyRect.rawValue: VNCProtocol.CopyRectEncoding(),
-			VNCFrameEncodingType.zlib.rawValue: VNCProtocol.ZlibEncoding(zStream: sharedZStream),
-			VNCFrameEncodingType.zrle.rawValue: VNCProtocol.ZRLEEncoding(zStream: sharedZStream),
+            VNCFrameEncodingType.tight.rawValue: VNCProtocol.TightEncoding(),
+            VNCFrameEncodingType.zlib.rawValue: VNCProtocol.ZlibEncoding(zStream: sharedZStream),
+			VNCFrameEncodingType.zrle.rawValue: VNCProtocol.ZRLEEncoding(zStream: sharedZRLEZStream),
 			VNCFrameEncodingType.hextile.rawValue: hextileEncoding,
 			VNCFrameEncodingType.coRRE.rawValue: VNCProtocol.RREEncoding(),
 			VNCFrameEncodingType.rre.rawValue: VNCProtocol.RREEncoding(),
@@ -110,7 +115,8 @@ public final class VNCConnection: NSObjectOrAnyObject {
 			VNCPseudoEncodingType.desktopSize.rawValue: VNCProtocol.DesktopSizeEncoding(),
 			VNCPseudoEncodingType.desktopName.rawValue: VNCProtocol.DesktopNameEncoding(),
 			VNCPseudoEncodingType.cursor.rawValue: VNCProtocol.CursorEncoding(),
-			compressionLevelEncodingType: compressionLevelEncoding
+			compressionLevelEncodingType: compressionLevelEncoding,
+			jpegQualityLevelEncodingType: jpegQualityLevelEncoding
 		]
 
 		// Sanity Check
@@ -142,6 +148,14 @@ public final class VNCConnection: NSObjectOrAnyObject {
 			customizedFrameEncodings.removeAll(where: { $0 == VNCFrameEncodingType.zrle.rawValue })
 		}
 
+		if let pixelFormat = state.pixelFormat,
+		   customizedFrameEncodings.contains(VNCFrameEncodingType.tight.rawValue),
+		   !VNCProtocol.TightEncoding.supportsPixelFormat(pixelFormat) {
+			customizedFrameEncodings.removeAll(where: { $0 == VNCFrameEncodingType.tight.rawValue })
+		}
+
+		let usesTightEncoding = customizedFrameEncodings.contains(VNCFrameEncodingType.tight.rawValue)
+
 		encs.append(contentsOf: customizedFrameEncodings)
 
 		// Frame Encodings (Required)
@@ -157,8 +171,15 @@ public final class VNCConnection: NSObjectOrAnyObject {
 			VNCPseudoEncodingType.cursor.rawValue,
 			// TODO: Implement
 //			VNCPseudoEncodingType.extendedClipboard.rawValue,
+            
+            // TODO: Make configurable
 			VNCPseudoEncodingType.compressionLevel6.rawValue
 		])
+
+		if usesTightEncoding {
+            // TODO: Make configurable
+			encs.append(VNCPseudoEncodingType.jpegQualityLevel6.rawValue)
+		}
 
 		let uniqueEncs = encs.uniqued()
 
@@ -180,7 +201,9 @@ public final class VNCConnection: NSObjectOrAnyObject {
 
         self.logger = logger
         self.context = context
+        
         self.sharedZStream = .init()
+        self.sharedZRLEZStream = .init()
 
         let clipboard = VNCClipboard()
 

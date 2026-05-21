@@ -3,36 +3,10 @@
 import PackageDescription
 
 let swiftLanguageMode = SwiftLanguageMode.v5
-
-let cSettings: [CSetting]
-let libtomCSettings: [CSetting]
 let zTarget: Target
 
-let disableShorten64To32Warning = "-Wno-shorten-64-to-32"
-
 #if os(Windows)
-// Sources\libtommath\bignumshim.c:28:10: warning: 'mp_read_unsigned_bin' is deprecated: replaced by mp_from_ubin [-Wdeprecated-declarations]
-// Sources\libtomcrypt\mac\xcbc\xcbc_file.c:55:9: warning: 'fopen' is deprecated: This function or variable may be unsafe. Consider using fopen_s instead. [-Wdeprecated-declarations]
 let disableDeprecatedDeclarationsWarning = "-Wno-deprecated-declarations"
-
-// Sources\libtomcrypt\include\tomcrypt_cfg.h:27:28: warning: 'malloc' redeclared without 'dllimport' attribute: previous 'dllimport' ignored [-Winconsistent-dllimport]
-// Sources\libtomcrypt\include\tomcrypt_cfg.h:28:28: warning: 'realloc' redeclared without 'dllimport' attribute: previous 'dllimport' ignored [-Winconsistent-dllimport]
-let disableInconsistentDllImportWarning = "-Wno-inconsistent-dllimport"
-
-cSettings = [
-    .unsafeFlags([
-        disableDeprecatedDeclarationsWarning,
-        disableInconsistentDllImportWarning
-    ])
-]
-
-libtomCSettings = [
-    .unsafeFlags([
-        disableShorten64To32Warning,
-        disableDeprecatedDeclarationsWarning,
-        disableInconsistentDllImportWarning
-    ])
-]
 
 zTarget = Target.target(name: "Z", path: "Sources/zlib-1.3.1", cSettings: [
     .define("STDC"),
@@ -44,24 +18,10 @@ zTarget = Target.target(name: "Z", path: "Sources/zlib-1.3.1", cSettings: [
     ])
 ])
 #else
-cSettings = .init()
-
-libtomCSettings = [
-    .unsafeFlags([
-        disableShorten64To32Warning
-    ])
-]
-
 zTarget = Target.target(name: "Z", linkerSettings: [
     .linkedLibrary("z")
 ])
 #endif
-
-let libtommathTarget = Target.target(name: "libtommath",
-                                     cSettings: libtomCSettings)
-
-let libtomcryptTarget = Target.target(name: "libtomcrypt",
-                                      cSettings: libtomCSettings)
 
 let d3desTarget = Target.target(name: "d3des")
 
@@ -91,11 +51,18 @@ let package = Package(
         .executable(name: "RoyalVNCKitDemo",
                     targets: [ "RoyalVNCKitDemo" ])
     ],
+    
+    dependencies: [
+        // TODO: Switch back to main repo once our FoundationEssentials changes are merged upstream
+//        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", from: "1.9.0")
+        .package(url: "https://github.com/royalapplications/CryptoSwift.git", branch: "foundationessentials"),
+        
+        .package(url: "https://github.com/troughton/Cstb", from: "1.0.6")
+    ],
 
     targets: [
         .target(
-            name: "RoyalVNCKitC",
-            cSettings: cSettings
+            name: "RoyalVNCKitC"
         ),
 
         .target(
@@ -104,13 +71,11 @@ let package = Package(
             dependencies: [
                 "RoyalVNCKitC",
                 .byName(name: d3desTarget.name),
-                .byName(name: libtommathTarget.name),
-                .byName(name: libtomcryptTarget.name),
-                .byName(name: zTarget.name)
+                .byName(name: zTarget.name),
+                .byName(name: "CryptoSwift"),
+                .product(name: "stb_image", package: "Cstb", condition: .when(platforms: [ .linux, .windows, .android ]))
             ],
 
-            cSettings: cSettings,
-            
             swiftSettings: [
                 .swiftLanguageMode(swiftLanguageMode),
                 
@@ -121,22 +86,16 @@ let package = Package(
         ),
 
         d3desTarget,
-        libtommathTarget,
-        libtomcryptTarget,
         zTarget,
 
         .executableTarget(
             name: "RoyalVNCKitDemo",
-            dependencies: [ "RoyalVNCKit" ],
-
-            cSettings: cSettings
+            dependencies: [ "RoyalVNCKit" ]
         ),
 
         .executableTarget(
             name: "RoyalVNCKitCDemo",
-            dependencies: [ "RoyalVNCKit" ],
-
-            cSettings: cSettings
+            dependencies: [ "RoyalVNCKit" ]
         )
     ]
 )

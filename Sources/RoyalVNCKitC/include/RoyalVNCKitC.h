@@ -84,6 +84,7 @@ typedef void* rvnc_context_t;
 typedef void* rvnc_logger_t;
 typedef void* rvnc_logger_delegate_t;
 typedef void* rvnc_authentication_request_t;
+typedef void* rvnc_frame_encodings_t;
 typedef void* rvnc_settings_t;
 typedef void* rvnc_connection_state_t;
 typedef void* rvnc_framebuffer_t;
@@ -215,6 +216,60 @@ extern void rvnc_authentication_request_complete_with_password(rvnc_authenticati
                                                                const char* _Nonnull password);
 
 
+#pragma mark - Frame Encodings
+
+/**
+ * Creates a new frame encodings object with an empty set of encodings.
+ * Encodings can be appended to the set by calling one of the methods prefixed with `rvnc_frame_encodings_append_`.
+ * Encodings should be appended in priority order, with the first one being the most important, the second one being the second most important and so on.
+ * The returned frame encodings object must be destroyed using `rvnc_frame_encodings_destroy`.
+ * \return A newly created frame encodings instance.
+ */
+extern rvnc_frame_encodings_t _Nonnull rvnc_frame_encodings_create(void);
+
+/**
+ * Appends the "Tight" encoding to the specified set of frame encodings.
+ * \param frameEncodings The frame encodings instance to modify.
+ */
+extern void rvnc_frame_encodings_append_tight(rvnc_frame_encodings_t _Nonnull frameEncodings);
+
+/**
+ * Appends the "zlib" encoding to the specified set of frame encodings.
+ * \param frameEncodings The frame encodings instance to modify.
+ */
+extern void rvnc_frame_encodings_append_zlib(rvnc_frame_encodings_t _Nonnull frameEncodings);
+
+/**
+ * Appends the "ZRLE" encoding to the specified set of frame encodings.
+ * \param frameEncodings The frame encodings instance to modify.
+ */
+extern void rvnc_frame_encodings_append_zrle(rvnc_frame_encodings_t _Nonnull frameEncodings);
+
+/**
+ * Appends the "Hextile" encoding to the specified set of frame encodings.
+ * \param frameEncodings The frame encodings instance to modify.
+ */
+extern void rvnc_frame_encodings_append_hextile(rvnc_frame_encodings_t _Nonnull frameEncodings);
+
+/**
+ * Appends the "CoRRE" encoding to the specified set of frame encodings.
+ * \param frameEncodings The frame encodings instance to modify.
+ */
+extern void rvnc_frame_encodings_append_corre(rvnc_frame_encodings_t _Nonnull frameEncodings);
+
+/**
+ * Appends the "RRE" encoding to the specified set of frame encodings.
+ * \param frameEncodings The frame encodings instance to modify.
+ */
+extern void rvnc_frame_encodings_append_rre(rvnc_frame_encodings_t _Nonnull frameEncodings);
+
+/**
+ * Destroys a frame encodings instance and releases its resources.
+ * \param frameEncodings The frame encodings instance to destroy.
+ */
+extern void rvnc_frame_encodings_destroy(rvnc_frame_encodings_t _Nonnull frameEncodings);
+
+
 #pragma mark - Settings
 
 /**
@@ -229,6 +284,7 @@ extern void rvnc_authentication_request_complete_with_password(rvnc_authenticati
  * \param inputMode The input mode for keyboard handling.
  * \param isClipboardRedirectionEnabled Enables clipboard redirection if true.
  * \param colorDepth The color depth for the framebuffer.
+ * \param frameEncodings A set of frame encodings ordered by priority or NULL for the default set of encodings.
  * \return A newly created settings instance.
  */
 extern rvnc_settings_t _Nonnull rvnc_settings_create(bool isDebugLoggingEnabled,
@@ -239,7 +295,8 @@ extern rvnc_settings_t _Nonnull rvnc_settings_create(bool isDebugLoggingEnabled,
                                                      bool useDisplayLink,
                                                      RVNC_INPUTMODE inputMode,
                                                      bool isClipboardRedirectionEnabled,
-                                                     RVNC_COLORDEPTH colorDepth);
+                                                     RVNC_COLORDEPTH colorDepth,
+                                                     rvnc_frame_encodings_t _Nullable frameEncodings);
 
 /**
  * Destroys a settings instance and releases its resources.
@@ -429,6 +486,14 @@ extern void rvnc_cursor_pixel_data_destroy(void* _Nonnull pixelData);
  * \return The size of the pixel data in bytes.
  */
 extern uint64_t rvnc_cursor_pixel_data_size_get(rvnc_cursor_t _Nonnull cursor);
+
+/**
+ * Copies the cursor's pixel data to a pre-allocated RGBA32 destination buffer.
+ * \param cursor The cursor instance.
+ * \param destinationPixelBuffer Pointer to the destination buffer.
+ */
+extern void rvnc_cursor_copy_pixel_data_to_rgba32_buffer(rvnc_cursor_t _Nonnull cursor,
+                                                         void* _Nonnull destinationPixelBuffer);
 
 
 #pragma mark - Connection Delegate

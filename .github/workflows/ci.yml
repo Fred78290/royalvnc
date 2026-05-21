@@ -37,7 +37,7 @@ jobs:
               NUGET_RID: "linux-x64"
 
           - name: "macOS ARM64"
-            os: macos-14
+            os: macos-latest
             env:
               OS: "apple"
               NUGET_RID: "osx"
@@ -70,22 +70,23 @@ jobs:
       VCPKG_DISABLE_METRICS: 1
       NUGET_BASE_VERSION: "0.0"
       ROYALVNC_BUILD_DEBUG: 0
-      SWIFT_VERSION: "6.1.2"
+      SWIFT_VERSION: "6.2.4"
 
     steps:
     - name: checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
 
     # setup build environment
 
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v5
       with:
-        dotnet-version: '9.0.x'
+        dotnet-version: '10.0.x'
 
     - name: setup environment (Apple)
       if: "success() && matrix.env.OS == 'apple'"
       run: |
-        sudo xcode-select --switch /Applications/Xcode_16.2.app
+        sudo xcode-select --switch /Applications/Xcode_26.2.app
+        swift --version
 
     - name: setup VC++ environment (Windows)
       if: "success() && matrix.env.OS == 'windows'"
@@ -159,7 +160,7 @@ jobs:
 
     - name: publish native NuGet packages
       if: "success() && matrix.env.NUGET_RID != ''"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: "RoyalApps.RoyalVNCKit.native.${{ matrix.env.NUGET_RID }}"
         retention-days: 5
@@ -169,10 +170,33 @@ jobs:
 
     - name: publish NuGet package
       if: "success() && matrix.env.NUGET_PACK_DOTNET_LIB == '1'"
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: "RoyalApps.RoyalVNCKit"
         retention-days: 5
         if-no-files-found: "error"
         path: |
           Bindings/dotnet/RoyalApps.RoyalVNCKit/bin/Release/RoyalApps.RoyalVNCKit.*.nupkg
+    
+    # Kotlin bindings and Android AAR artifacts
+
+    - name: install Android dependencies
+      if: "success() && matrix.env.OS == 'apple'"
+      run: |
+        ./android_dependencies.sh
+
+    - name: build Android libraries
+      if: "success() && matrix.env.OS == 'apple'"
+      run: |
+        ./android_build.sh
+
+    - name: publish Android artifacts
+      if: "success() && matrix.env.OS == 'apple'"
+      uses: actions/upload-artifact@v6
+      with:
+        name: "royalvnc-android-arm64"
+        retention-days: 5
+        if-no-files-found: "error"
+        path: |
+          Bindings/kotlin/RoyalVNCAndroidTest/royalvnc/build/distributions/royalvnc.zip
+          Bindings/kotlin/RoyalVNCAndroidTest/swiftRuntime/build/distributions/swiftRuntime_android.zip
